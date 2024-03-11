@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Table Extractor</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        
+        <h1>Table Extractor</h1>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <label for="file">File:</label>
+            <input type="file" id="file" name="file"><br />
+            <label>Type:</label>
+            <!--
+            <button onclick="loading()" name="form_button" value="sale_order">order</button>
+            <button onclick="loading()" name="form_button" value="invoice">invoice</button>
+            <button onclick="loading()" name="form_button" value="receipt">receipt</button>
+            <button onclick="loading()" name="form_button" value="table">table</button>
+            -->
+            <select name="Type" id="Type">
+                <option value="sale_order">Sale order</option>
+                <option value="invoice">Invoice</option>
+                <option value="receipt">Receipt</option>
+                <option value="table">Table</option>
+            </select>
+            <button onclick="loading()" name="summit_button">Summit</button>
+            <p id="load"></p>
+            <script>
+                function loading(){
+                    document.getElementById("load").innerHTML="loading...";
+                }
+            </script>
+            {% for filename in files %}
+            <a href="{{ url_for('download_file', filename=filename) }}">{{ filename }}</a><br />
+            {% endfor %}
+        </form>
+    </body>
+</html>
