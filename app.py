@@ -14,7 +14,7 @@ import json
 import shutil
 
 app = Flask(__name__)
-app.config.from_object(app.config)
+
 
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg'])
 
@@ -81,7 +81,7 @@ def upload():
                             ,[1480*width/2616,2660*height/3385,2600*width/2616, 3000*height/3385]]
                   
                     file_path = os.path.join('process','information_0.jpg')
-                    if request.form['form_button']=='sale_order':
+                    if request.form['Type']=='sale_order':
                         crop_info(sale_order,process_file)
                         text=OCRextract(sale_order)
                         try:
@@ -101,7 +101,7 @@ def upload():
                         except Exception as e: print(e)
                         
 
-                    elif request.form['form_button']=='invoice':
+                    elif request.form['Type']=='invoice':
                         crop_info(invoice,process_file)
                         text=OCRextract(invoice)
                         try:
@@ -119,7 +119,7 @@ def upload():
                                 json.dump(json_decoded, json_file,ensure_ascii=False) 
                         except Exception as e: print(e)
 
-                    elif request.form['form_button']=='receipt':
+                    elif request.form['Type']=='receipt':
                         crop_info(receipt,process_file)
                         text=OCRextract(receipt)
                         try:
@@ -144,19 +144,21 @@ def upload():
                             df.to_json('./output/output.json',force_ascii=False, orient ='records')
                         except Exception as e: print(e)
                     
-            return redirect(url_for('download'))
+                #return redirect(url_for('download'))
 
-    return render_template('upload.html')
+    return render_template('index.html', files=os.listdir('output'))
    
    
-@app.route('/download')
-def download():
-        return render_template('download.html', files=os.listdir('output'))
+#@app.route('/download')
+#def download():
+        #return render_template('download.html', files=os.listdir('output'))
 
-@app.route('/download/<filename>')
+#@app.route('/download/<filename>')
+@app.route('/<filename>')
 def download_file(filename):
         return send_from_directory('output', filename)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
