@@ -1,2 +1,2 @@
-gunicorn==19.7.1
 python_version == 3.11.8
+gunicorn==19.7.1
