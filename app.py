@@ -1,8 +1,7 @@
-
 from flask import Flask, render_template, url_for, request, redirect,send_from_directory
 from werkzeug.utils import secure_filename
 import os
-from script import pdf2img, png2jpg, crop_info, OCRextract, invoice_extract, order_extract,json_info,receipt_extract,t_extract
+from script import pdf2img, png2jpg, crop_info, OCRextract, invoice_extract, order_extract, receipt_extract, t_extract, json_receipt, json_invoice, json_sale_order
 from PIL import Image
 from huggingface_hub import hf_hub_download
 
@@ -42,7 +41,8 @@ def upload():
 
     os.mkdir("./process")
     os.mkdir("./input") 
-    os.mkdir("./output")  
+    os.mkdir("./output")
+      
     if request.method == 'POST':
             file = request.files['file']
             if file and allowed_file(file.filename):
@@ -89,7 +89,7 @@ def upload():
                             df=order_extract(file_path,text)
                             
                             df.to_csv('./output/output.csv', index=False,encoding="utf-16")
-                            df1=json_info("sale_order",text)
+                            df1=json_sale_order(text)
                             df1.to_json('./process/output.json',force_ascii=False, orient ='records')
                             with open("./process/table.json", encoding="utf-8") as json_file:
                                 add_value = json.load(json_file)
@@ -108,7 +108,7 @@ def upload():
                             df=invoice_extract(file_path,text)
                             
                             df.to_csv('./output/output.csv', index=False,encoding="utf-16")
-                            df1=json_info("invoice",text)
+                            df1=json_invoice(text)
                             df1.to_json('./process/output.json',force_ascii=False, orient ='records')
                             with open("./process/table.json", encoding="utf-8") as json_file:
                                 add_value = json.load(json_file)
@@ -126,7 +126,7 @@ def upload():
                             df=receipt_extract(file_path,text)
                             
                             df.to_csv('./output/output.csv', index=False,encoding="utf-16")
-                            df1=json_info("receipt",text)
+                            df1=json_receipt(text)
                             df1.to_json('./process/output.json',force_ascii=False, orient ='records')
                             with open("./process/table.json", encoding="utf-8") as json_file:
                                 add_value = json.load(json_file)
