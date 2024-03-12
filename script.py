@@ -363,18 +363,6 @@ def json_info(form,text):
 
     return df
 
-
-def json_append():
-  with open("output.json") as json_file:
-      add_value = json.load(json_file)
-      
-  with open("output.json") as json_file:
-      json_decoded = json.load(json_file)
-
-  json_decoded.append(add_value[0])
-  with open("output.json", 'w') as json_file:
-      json.dump(json_decoded, json_file,ensure_ascii=False)
-
 def json_table():
   with open("./process/table.json") as json_file:
     add_value = json.load(json_file)
