@@ -1,4 +1,3 @@
-
 from PIL import Image
 from transformers import DetrFeatureExtractor
 from transformers import TableTransformerForObjectDetection
@@ -12,7 +11,6 @@ import fitz  # PyMuPDF
 from img2table.document import Image as Im
 from img2table.ocr import EasyOCR
 import os
-import pickle
 import matplotlib.pyplot as plt
 
 
@@ -116,7 +114,6 @@ def compute_boxes(image_path):
       feature_extractor = DetrFeatureExtractor()
       encoding = feature_extractor(image, return_tensors="pt")
       encoding.keys()
-      #model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-transformer-structure-recognition")
       
       with torch.no_grad():
           outputs = model(**encoding)
@@ -124,7 +121,7 @@ def compute_boxes(image_path):
       results = feature_extractor.post_process_object_detection(outputs, threshold=0.7, target_sizes=[(height, width)])[0]
       boxes = results['boxes'].tolist()
       labels = results['labels'].tolist()
-      #plot_results(model,image, results['scores'], results['labels'], results['boxes'])
+      plot_results(model,image, results['scores'], results['labels'], results['boxes'])
 
       return boxes,labels
 def plot_results(model,pil_img, scores, labels, boxes):
@@ -141,7 +138,8 @@ def plot_results(model,pil_img, scores, labels, boxes):
         ax.text(xmin, ymin, text, fontsize=5,
                 bbox=dict(facecolor='yellow', alpha=0.5))
     plt.axis('off')
-    plt.show()
+    #plt.show()
+    plt.savefig('./process/cropped.jpg', bbox_inches='tight')
 
 def extract_table(image_path,header):
     empty_row=0
@@ -187,7 +185,7 @@ def extract_table(image_path,header):
                                       slope_ths=1, height_ths=1, width_ths=1, detail=0)
           if len(cell_text) == 0:
             cell_text=np.nan
-            #empty_row+=1
+      
           else:
             cell_text = ''.join([str(elem) for elem in cell_text])
             #print(cell_text)
@@ -296,7 +294,6 @@ def t_extract(image_path):
       with torch.no_grad():
         outputs = model2(**encoding)
       results = feature_extractor.post_process_object_detection(outputs, threshold=0.7, target_sizes=[(height, width)])[0]
-      # Provide the path to your image file
       im=image.crop((results['boxes'][0][0].tolist(),results['boxes'][0][1].tolist(),results['boxes'][0][2].tolist(),results['boxes'][0][3].tolist()))
       im.save("./process/cropped.jpg")
       ocr = EasyOCR(lang=["en","th"])
@@ -319,9 +316,7 @@ def t_extract(image_path):
    
       return df
 
-def json_info(form,text):
-
-    if form=="sale_order":
+def json_sale_order(text):
 
       information = np.array([[behind('ชื่อผู้สั่งซื้อ',text[0]), behind('ที่อยู่',text[0]),behind('โทร.',text[0]),behind('email',text[0])
                     , behind('วันที่',text[1]),behind('ชื่อแบรนด์',text[1]),behind('วันนัดส่ง',text[1])
@@ -335,7 +330,11 @@ def json_info(form,text):
 
       df['table']=np.nan
 
-    elif form=="invoice":
+    
+      return df
+def json_invoice(text):
+
+    
       tel = '[tel,Tel,โทร] \d{2,3}[-]\d{3}[-]\d{4}'
       date = "วันที่ date \d{2}[/]\d{2}[/]\d{2}"
       Pay_d = "กำหนดชำระ \d{2}[/-]\d{2}[/-]\d{2}"
@@ -348,7 +347,11 @@ def json_info(form,text):
 
       df['table']=np.nan
 
-    elif form=="receipt":
+      return df
+
+def json_receipt(text):
+
+    
       tel = '[tel,Tel,โทร] \d{2,3}[-]\d{3}[-]\d{4}'
       date = "\d{2}[-][^:|]+\s*[-]\d{2}"
       information = np.array([["บริษัท เวลเท็กซ์ เทรดดิ้ง จำกัด", find(tel,text[0],"tel"),find(date,text[0],"")
@@ -361,7 +364,8 @@ def json_info(form,text):
 
       df['table']=np.nan
 
-    return df
+      return df
+
 
 def json_table():
   with open("./process/table.json") as json_file:
