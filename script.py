@@ -97,7 +97,7 @@ def crop_info(form,image_path):
 def OCRextract(form):
 
   text=[]
-  reader = easyocr.Reader(['th','en'],verbose=False)
+  reader = easyocr.Reader(['th','en'],verbose=False,gpu=True)
   for i in range(1,len(form)):
     bounds = reader.readtext(os.path.join('process', 'information_'+str(i)+'.jpg'),paragraph=False, add_margin=0.13, slope_ths=1, height_ths=1, width_ths=1, detail=0)
     bounds = strip_words(bounds)
@@ -143,7 +143,7 @@ def plot_results(model,pil_img, scores, labels, boxes):
 
 def extract_table(image_path,header):
     empty_row=0
-    reader = easyocr.Reader(['th','en'])
+    reader = easyocr.Reader(['th','en'],gpu=True)
     with Image.open(image_path) as image:
 
       boxes,labels = compute_boxes(image_path)
