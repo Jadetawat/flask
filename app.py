@@ -9,13 +9,14 @@ from huggingface_hub import hf_hub_download
 import numpy as np
 import pandas as pd
 import json
-
+import csv
 import shutil
 
 app = Flask(__name__)
 
 
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg'])
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -24,6 +25,7 @@ def allowed_file(filename):
 @app.route('/', methods=['GET',"POST"])
 
 def upload():
+
     if os.path.exists("./process"):
         shutil.rmtree("./process")
     else:
@@ -81,14 +83,14 @@ def upload():
                             ,[1480*width/2616,2660*height/3385,2600*width/2616, 3000*height/3385]]
                   
                     file_path = os.path.join('process','information_0.jpg')
-                    if request.form['Type']=='sale_order':
+                    if request.form['format']=='sale_order':
                         crop_info(sale_order,process_file)
                         text=OCRextract(sale_order)
                         try:
 
                             df=order_extract(file_path,text)
                             
-                            df.to_csv('./output/output.csv', index=False,encoding="utf-16")
+                            df.to_csv('./output/output.csv', index=False,encoding="utf-8")
                             df1=json_sale_order(text)
                             df1.to_json('./process/output.json',force_ascii=False, orient ='records')
                             with open("./process/table.json", encoding="utf-8") as json_file:
@@ -101,13 +103,13 @@ def upload():
                         except Exception as e: print(e)
                         
 
-                    elif request.form['Type']=='invoice':
+                    elif request.form['format']=='invoice':
                         crop_info(invoice,process_file)
                         text=OCRextract(invoice)
                         try:
                             df=invoice_extract(file_path,text)
                             
-                            df.to_csv('./output/output.csv', index=False,encoding="utf-16")
+                            df.to_csv('./output/output.csv', index=False,encoding="utf-8")
                             df1=json_invoice(text)
                             df1.to_json('./process/output.json',force_ascii=False, orient ='records')
                             with open("./process/table.json", encoding="utf-8") as json_file:
@@ -119,13 +121,13 @@ def upload():
                                 json.dump(json_decoded, json_file,ensure_ascii=False) 
                         except Exception as e: print(e)
 
-                    elif request.form['Type']=='receipt':
+                    elif request.form['format']=='receipt':
                         crop_info(receipt,process_file)
                         text=OCRextract(receipt)
                         try:
                             df=receipt_extract(file_path,text)
                             
-                            df.to_csv('./output/output.csv', index=False,encoding="utf-16")
+                            df.to_csv('./output/output.csv', index=False,encoding="utf-8")
                             df1=json_receipt(text)
                             df1.to_json('./process/output.json',force_ascii=False, orient ='records')
                             with open("./process/table.json", encoding="utf-8") as json_file:
@@ -140,23 +142,27 @@ def upload():
                         try:
                             df=t_extract(os.path.join('process', filename))
                             
-                            df.to_csv('./output/output.csv', index=False,encoding="utf-16")
+                            df.to_csv('./output/output.csv', index=False,encoding="utf-8")
                             df.to_json('./output/output.json',force_ascii=False, orient ='records')
                         except Exception as e: print(e)
-                    
-                #return redirect(url_for('download'))
 
-    return render_template('index.html', files=os.listdir('output'))
+
+                
+                return redirect(url_for('download'))
+
+
+    return render_template('index.html')
    
    
-#@app.route('/download')
-#def download():
-        #return render_template('download.html', files=os.listdir('output'))
+@app.route('/download')
+def download():
+    df = pd.read_csv("./output/output.csv",encoding="utf-8")
+    return render_template('download.html', files=os.listdir('output'),tables=[df.to_html(index = False,classes='data', header="true")])
 
-#@app.route('/download/<filename>')
-@app.route('/<filename>')
+@app.route('/download/<filename>')
+#@app.route('/<filename>')
 def download_file(filename):
-        return send_from_directory('output', filename)
+    return send_from_directory('output', filename)
 
 
 if __name__ == '__main__':
