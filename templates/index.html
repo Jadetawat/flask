@@ -11,52 +11,42 @@
 </head>
 
 <body>
-    <header>
+
+    <form method="POST" enctype="multipart/form-data">
         <h1>Table Data Extractor</h1>
-    </header>
+        <div class="mb-3">
 
-    <main>
-        <form method="POST" enctype="multipart/form-data">
-            <section>
-                <div class="mb-3">
-                    
-                    <div><input type="file" id="file" name="file" accept="image/jpeg,image/png,application/pdf" /></div>
-                    <div class="fill"><img id="previewImg" class="img-fluid rounded"></div>
-                </div>
+            <div><input type="file" id="file" name="file" accept="image/jpeg,image/png,application/pdf" /></div>
+            <div class="fill"><img id="previewImg" class="img-fluid rounded"></div>
+        </div>
 
-                <div>
-                    <label>choose format:</label>
-                    <select name="format" id="format">
-                        <option value="table">Table</option>
-                        <option value="sale_order">Sale order (bangkok clothier)</option>
-                        <option value="invoice">Invoice (vertex trading)</option>
-                        <option value="receipt">Receipt (vertex trading)</option>
-                    </select>
+        <div>
+            <label>choose format:</label>
+            <select name="format" id="format">
+                <option value="table">Table</option>
+                <option value="sale_order">Sale order (bangkok clothier)</option>
+                <option value="invoice">Invoice (vertex trading)</option>
+                <option value="receipt">Receipt (vertex trading)</option>
+            </select>
 
-                </div>
-            </section>
+        </div>
+        <div><button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button></div>
+    </form>
+    
+    <div>
+        <p id="load"></p>
+    </div>
 
-            <div><button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button></div>
-            <table>
-
-            </table>
-
-        </form>
-        <section>
-            <div><p id="load"></p> </div>
-        </section>
-
-    </main>
     <script>
         function loading() {
-            document.getElementById("load").innerHTML = "loading...";  
+            document.getElementById("load").innerHTML = "loading...";
         }
 
         let imgInput = document.querySelector("#file")
         let previewImg = document.querySelector("#previewImg")
         imgInput.onchange = evt => {
-            const[file] = imgInput.files;
-            if (file){
+            const [file] = imgInput.files;
+            if (file) {
                 previewImg.src = URL.createObjectURL(file);
             }
         }
