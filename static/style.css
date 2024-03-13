@@ -1,9 +1,77 @@
 body {
-    background-color: powderblue;
+    background-color: LightCyan;
 }
+
 h1 {
-    color: black;
+    color: SteelBlue;
+    text-align: center;
+    margin-top: 50px;
+    font-size: 40px;
 }
+
 p {
     color: red;
+}
+
+.button {
+    background-color: SteelBlue;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+}
+
+.button:hover {
+    background: white;
+    color: steelblue;
+}
+
+
+*{
+    
+    text-align: center;
+    color: SteelBlue;
+    font-size: 20px;
+}
+
+select {
+  
+    color: SteelBlue;
+    
+}
+
+input[type=file]::file-selector-button {
+    margin-right: 20px;
+    border: none;
+    background: SteelBlue;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: #fff;
+ 
+}
+
+input[type=file]::file-selector-button:hover {
+    background: white;
+    color: steelblue;
+}
+
+.fill img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
+  }
+  
+.fill{
+    margin-left: auto;
+    margin-right: auto;
+    width: 685px; 
+    height: 500px; 
+    border: 3px black solid; 
+
+}
+
+table, th, td {
+    border: 1px solid;
 }
