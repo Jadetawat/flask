@@ -72,6 +72,15 @@ input[type=file]::file-selector-button:hover {
 
 }
 
-table, th, td {
+th, td {
     border: 1px solid;
+    height: 30px;
+    font-size: 12px;
+}
+
+table {
+    border: 1px solid;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
 }
