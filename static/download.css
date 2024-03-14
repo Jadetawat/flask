@@ -72,22 +72,20 @@
     padding: 2%;
 }
 
-
-
-
 table th {
     border: 1px solid;
-    font-size: 12px;
+    font-size: 18px;
     border-collapse: collapse;
     text-align: center;
 }
 
 table td {
     border: 1px solid;
-    font-size: 18px;
+    font-size: 12px;
     border-collapse: collapse;
     text-align: center;
 }
+
 
 table {
     border: 1px solid;
