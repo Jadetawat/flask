@@ -16,7 +16,7 @@
 
 .grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 3fr 3fr 1fr;
     grid-template-rows: 100px auto 100px;
     min-height: 100vh;
     grid-template-areas:
