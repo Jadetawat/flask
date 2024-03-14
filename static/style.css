@@ -1,4 +1,3 @@
-
 .button {
     background-color: SteelBlue;
     color: white;
@@ -6,6 +5,7 @@
     border-radius: 10px;
     cursor: pointer;
     border: none;
+    font-size: 30px;
 }
 
 .button:hover {
@@ -13,42 +13,83 @@
     color: steelblue;
 }
 
-*{
-    margin: 0;
-}
-.grid{
+
+.grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto minmax(800px,auto) auto;
-    margin-top: 50px;
+    grid-template-columns: 1fr 2fr 2fr 1fr;
+    grid-template-rows: 100px auto 100px;
+    min-height: 100vh;
     grid-template-areas:
-        'header header'
-        'leftbar main'
-  
-}
-.page-header{
-    grid-area: header;
-}
-.page-main{
-    grid-area: main;
-    
+        'header header header header'
+        'leftbar l_main r_main rightbar'
+        'footer footer footer footer';
+
 }
 
-.content{
-    background-color: lightcyan;
-    border: 2px solid black;
-    box-sizing: border-box;
-    padding: 10px;
+.page-header {
+    grid-area: header;
+    background-color: steelblue;
+    color: white;
+    text-align: center;
+
+}
+
+.page-l_main {
+    grid-area: l_main;
+    background-color: white;
+    margin: 10px;
+    justify-self: center;
+    align-self: center;
+
+}
+
+.page-r_main {
+    grid-area: r_main;
+    background-color: white;
+    margin: 10px;
+    justify-self: center;
+
+}
+
+.page-rightbar {
+    grid-area: rightbar;
+    background-color: lightgrey;
+
+
+}
+
+.page-leftbar {
+    grid-area: leftbar;
+    background-color: lightgrey;
+
+
+}
+
+.page-footer {
+    grid-area: footer;
+    background-color: steelblue;
+    color: white;
+
+}
+
+.content {
+
+    border: none;
+    padding: 2%;
+
 }
 
 input[type=file]::file-selector-button {
     margin-right: 20px;
+    margin-top: 100px;
+    margin-bottom: 50px;
     border: none;
     background: SteelBlue;
     padding: 10px 20px;
     border-radius: 10px;
     color: #fff;
- 
+    font-size: 30px;
+
 }
 
 input[type=file]::file-selector-button:hover {
@@ -61,17 +102,18 @@ input[type=file]::file-selector-button:hover {
     width: 100%;
     object-fit: cover;
     overflow: hidden;
-  }
-  
-.fill{
+}
 
-    width: 685px; 
-    height: 500px; 
-    border: 3px black solid; 
+.fill {
+
+    width: 600px;
+    height: 700px;
+    border: 3px black solid;
 
 }
 
-th, td {
+th,
+td {
     border: 1px solid;
     height: 30px;
     font-size: 12px;
@@ -84,6 +126,41 @@ table {
     margin-right: auto;
 }
 
-*{
-    background-color: lightcyan;
+p {
+    color: red;
+    font-size: 50px;
+}
+
+label {
+    font-size: 30px;
+
+}
+
+select {
+    font-size: 30px;
+
+}
+
+#file {
+    font-size: 30px;
+}
+
+select option {
+    font-size: 30px;
+}
+
+#extract {
+    margin-bottom: 100px;
+
+}
+
+.select_color {
+    background-color: SteelBlue;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    margin-bottom: 100px;
+
 }
