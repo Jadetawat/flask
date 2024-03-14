@@ -36,8 +36,8 @@
 
 .page-l_main {
     grid-area: l_main;
-    background-color: white;
-    margin: 10px;
+    background-color: #ffffff;
+
     justify-self: center;
     align-self: center;
 
@@ -46,7 +46,7 @@
 .page-r_main {
     grid-area: r_main;
     background-color: white;
-    margin: 10px;
+
     justify-self: center;
     align-self: center;
 
@@ -74,10 +74,7 @@
 }
 
 .content {
-
-    border: none;
     padding: 2%;
-
 }
 
 input[type=file]::file-selector-button {
@@ -112,16 +109,24 @@ input[type=file]::file-selector-button:hover {
 
 }
 
-th,td {
+table th {
     border: 1px solid;
-    height: 30px;
     font-size: 12px;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+table td {
+    border: 1px solid;
+    font-size: 12px;
+    border-collapse: collapse;
+    text-align: center;
 }
 
 table {
     border: 1px solid;
-    margin-left: auto;
-    margin-right: auto;
+    border-collapse: collapse;
+
 }
 
 p {
@@ -171,7 +176,6 @@ select option {
     border-radius: 10px;
     cursor: pointer;
     border: none;
-    margin-bottom: 100px;
+    
 
 }
-
