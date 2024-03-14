@@ -15,36 +15,50 @@
         <header class="page-header content">
             <h3>Table Data Extractor</h3>
         </header>
-        <div class="page-main content">
+        <div class="page-l_main content">
 
             <form method="POST" enctype="multipart/form-data">
                 <div class="mb-3">
-                    <div><input type="file" id="file" name="file" accept="image/jpeg,image/png,application/pdf" /></div>
+
                     <div class="fill"><img id="previewImg" class="img-fluid rounded"></div>
                 </div>
-
-                <label>choose format:</label>
-                <select name="format" id="format">
-                    <option value="table">Table</option>
-                    <option value="sale_order">Sale order (bangkok clothier)</option>
-                    <option value="invoice">Invoice (vertex trading)</option>
-                    <option value="receipt">Receipt (vertex trading)</option>
-                </select>
-
-                <button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button>
-                <p id="load"></p>
-
             </form>
         </div>
 
-        <div class="page-leftbar content">
-            <h3>leftbar</h3>
+        <div class="page-r_main content">
+            <div class="mb-3">
+                <input type="file" id="file" name="file" accept="image/jpeg,image/png,application/pdf" />
+            </div>
+            <div class="select_color">
+                <label>choose format:
+                    <select name="format" id="format">
+                        <option value="table">Table</option>
+                        <option value="sale_order">Sale order (bangkok clothier)</option>
+                        <option value="invoice">Invoice (vertex trading)</option>
+                        <option value="receipt">Receipt (vertex trading)</option>
+                    </select>
+                </label>
+            </div>
+            <div>
+                <button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button>
+                <p id="load"></p>
+            </div>
         </div>
+        <div class="page-leftbar content"></div>
+        <div class="page-rightbar content"></div>
+        <div class="page-footer content"></div>
     </div>
 
     <script>
         function loading() {
-            document.getElementById("load").innerHTML = "loading...";
+            
+            if (document.getElementById("file").files.length == 0) {
+                console.log("no files selected");
+            }
+            else{
+                document.getElementById("load").innerHTML = "loading...";
+            }
+        
         }
 
         let imgInput = document.querySelector("#file")
