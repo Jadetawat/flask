@@ -1,17 +1,3 @@
-body {
-    background-color: LightCyan;
-}
-
-h1 {
-    color: SteelBlue;
-    text-align: center;
-    margin-top: 50px;
-    font-size: 40px;
-}
-
-p {
-    color: red;
-}
 
 .button {
     background-color: SteelBlue;
@@ -27,18 +13,32 @@ p {
     color: steelblue;
 }
 
-
 *{
+    margin: 0;
+}
+.grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto minmax(800px,auto) auto;
+    margin-top: 50px;
+    grid-template-areas:
+        'header header'
+        'leftbar main'
+  
+}
+.page-header{
+    grid-area: header;
+}
+.page-main{
+    grid-area: main;
     
-    text-align: center;
-    color: SteelBlue;
-    font-size: 20px;
 }
 
-select {
-  
-    color: SteelBlue;
-    
+.content{
+    background-color: lightcyan;
+    border: 2px solid black;
+    box-sizing: border-box;
+    padding: 10px;
 }
 
 input[type=file]::file-selector-button {
@@ -64,8 +64,7 @@ input[type=file]::file-selector-button:hover {
   }
   
 .fill{
-    margin-left: auto;
-    margin-right: auto;
+
     width: 685px; 
     height: 500px; 
     border: 3px black solid; 
@@ -83,4 +82,8 @@ table {
     width: 50%;
     margin-left: auto;
     margin-right: auto;
+}
+
+*{
+    background-color: lightcyan;
 }
