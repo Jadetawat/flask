@@ -11,30 +11,35 @@
 </head>
 
 <body>
+    <div class="grid">
+        <header class="page-header content">
+            <h3>Table Data Extractor</h3>
+        </header>
+        <div class="page-main content">
 
-    <form method="POST" enctype="multipart/form-data">
-        <h1>Table Data Extractor</h1>
-        <div class="mb-3">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <div><input type="file" id="file" name="file" accept="image/jpeg,image/png,application/pdf" /></div>
+                    <div class="fill"><img id="previewImg" class="img-fluid rounded"></div>
+                </div>
 
-            <div><input type="file" id="file" name="file" accept="image/jpeg,image/png,application/pdf" /></div>
-            <div class="fill"><img id="previewImg" class="img-fluid rounded"></div>
+                <label>choose format:</label>
+                <select name="format" id="format">
+                    <option value="table">Table</option>
+                    <option value="sale_order">Sale order (bangkok clothier)</option>
+                    <option value="invoice">Invoice (vertex trading)</option>
+                    <option value="receipt">Receipt (vertex trading)</option>
+                </select>
+
+                <button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button>
+                <p id="load"></p>
+
+            </form>
         </div>
 
-        <div>
-            <label>choose format:</label>
-            <select name="format" id="format">
-                <option value="table">Table</option>
-                <option value="sale_order">Sale order (bangkok clothier)</option>
-                <option value="invoice">Invoice (vertex trading)</option>
-                <option value="receipt">Receipt (vertex trading)</option>
-            </select>
-
+        <div class="page-leftbar content">
+            <h3>leftbar</h3>
         </div>
-        <div><button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button></div>
-    </form>
-    
-    <div>
-        <p id="load"></p>
     </div>
 
     <script>
