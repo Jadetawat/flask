@@ -9,7 +9,7 @@
 }
 
 .button:hover {
-    background: white;
+    background: cyan;
     color: steelblue;
 }
 
@@ -93,7 +93,7 @@ input[type=file]::file-selector-button {
 }
 
 input[type=file]::file-selector-button:hover {
-    background: white;
+    background: cyan;
     color: steelblue;
 }
 
@@ -141,6 +141,7 @@ select {
 
 }
 
+
 #file {
     font-size: 30px;
 }
@@ -157,6 +158,17 @@ select option {
 .select_color {
     background-color: SteelBlue;
     color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    margin-bottom: 100px;
+
+}
+
+.select_color:hover {
+    background-color: cyan;
+    color: steelblue;
     padding: 10px 20px;
     border-radius: 10px;
     cursor: pointer;
