@@ -1,19 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Table Data Extractor</title>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="/static/style.css">
-        
+
+<head>
+    <title>Table Data Extractor</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/style.css">
+
 </head>
+
 <body>
-    {% for table in tables %}
-        {{ table|safe }}
-    {% endfor %}
-    {% for filename in files %}
-    <br><a href="{{ url_for('download_file', filename=filename) }}">download: {{ filename }}</a><br />
-    
-    {% endfor %}
+    <div class="grid">
+        <header class="page-header content">
+            <h3>Table Data Extractor</h3>
+        </header>
+        <div class="page-main content">
+
+            {% for table in tables %}
+            {{ table|safe }}
+            {% endfor %}
+            {% for filename in files %}
+            <br><a href="{{ url_for('download_file', filename=filename) }}">download: {{ filename }}</a><br />
+            {% endfor %}
+        </div>
+        <div class="page-leftbar content"><h3>leftbar</h3></div> 
+    </div>
 </body>
 
 </html>
