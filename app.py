@@ -62,6 +62,7 @@ def upload():
                         image.save(process_file, 'JPEG')
                 new_filename = filename.split('.')[0]+'.jpg'
                 process_file = os.path.join('process', new_filename) 
+
                 #return send_from_directory('output', output_file) 
                 
                 
@@ -140,7 +141,7 @@ def upload():
                         except Exception as e: print(e)
                     else:
                         try:
-                            df=t_extract(os.path.join('process', filename))
+                            df=t_extract(process_file)
                             
                             df.to_csv('./output/output.csv', index=False,encoding="utf-8")
                             df.to_json('./output/output.json',force_ascii=False, orient ='records')
@@ -156,7 +157,7 @@ def upload():
    
 @app.route('/download')
 def download():
-
+        
     df = pd.read_csv("./output/output.csv",encoding="utf-8")
     return render_template('download.html', files=os.listdir('output'),tables=[df.to_html(index = False,classes='data', header="true")])
 
