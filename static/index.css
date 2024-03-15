@@ -103,7 +103,7 @@ input[type=file]::file-selector-button:hover {
 }
 
 .fill {
-
+    margin-right: 11px;
     width: 600px;
     height: 700px;
     border: 3px black solid;
