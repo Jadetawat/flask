@@ -156,9 +156,8 @@ def upload():
    
 @app.route('/download')
 def download():
-    try:
-        df = pd.read_csv("./output/output.csv",encoding="utf-8")
-    except Exception as e: print(e)
+
+    df = pd.read_csv("./output/output.csv",encoding="utf-8")
     return render_template('download.html', files=os.listdir('output'),tables=[df.to_html(index = False,classes='data', header="true")])
 
 @app.route('/download/<filename>')
