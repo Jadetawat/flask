@@ -25,25 +25,26 @@ def allowed_file(filename):
 @app.route('/', methods=['GET',"POST"])
 
 def upload():
+    try:
+        if os.path.exists("./process"):
+            shutil.rmtree("./process")
+        else:
+            print("process file does not exist")
 
-    if os.path.exists("./process"):
-        shutil.rmtree("./process")
-    else:
-        print("process file does not exist")
+        if os.path.exists("./input"):
+            shutil.rmtree("./input")
+        else:
+            print("input file does not exist")
 
-    if os.path.exists("./input"):
-        shutil.rmtree("./input")
-    else:
-        print("input file does not exist")
+        if os.path.exists("./output"):
+            shutil.rmtree("./output")
+        else:
+            print("output file does not exist")
 
-    if os.path.exists("./output"):
-        shutil.rmtree("./output")
-    else:
-        print("output file does not exist")
-
-    os.mkdir("./process")
-    os.mkdir("./input") 
-    os.mkdir("./output")
+        os.mkdir("./process")
+        os.mkdir("./input") 
+        os.mkdir("./output")
+    except Exception as e: print(e)
       
     if request.method == 'POST':
             file = request.files['file']
