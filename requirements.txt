@@ -10,3 +10,4 @@ torchvision==0.14.1
 transformers==4.30.2
 Werkzeug==2.2.2
 easyocr==1.7.1
+matplotlib==3.5.3
