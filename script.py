@@ -7,7 +7,6 @@ import json
 import easyocr
 import fitz  # PyMuPDF
 import matplotlib.pyplot as plt
-from torchvision import transforms
 import torch
 
 reader = easyocr.Reader(['th','en'])
@@ -19,7 +18,6 @@ Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft
 
 cropped_table_path="./process/cropped_table.jpg"
 removed_table_path="./process/removed_table.jpg"
-#j-son4process = "./process/output.json"
 csv_output="./output/output.csv"
 json_output="./output/output.json"
 jsonTable="./process/table.json"
