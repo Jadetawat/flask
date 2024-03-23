@@ -3,7 +3,6 @@ from werkzeug.utils import secure_filename
 import os
 from script import pdf2img, png2jpg, information_extract
 from PIL import Image
-import numpy as np
 import pandas as pd
 import shutil
 
