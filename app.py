@@ -5,9 +5,10 @@ from script import pdf2img, png2jpg, information_extract
 from PIL import Image
 import pandas as pd
 import shutil
+from .config import Config
 
 app = Flask(__name__)
-
+app.config.from_object(config)
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg'])
 
 def allowed_file(filename):
