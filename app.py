@@ -38,30 +38,30 @@ def upload():
         os.mkdir("./output")
     except Exception as e: print(e)    
     if request.method == 'POST':
-            file = request.files['file']
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                save_location = os.path.join('input', filename)
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            save_location = os.path.join('input', filename)
+            input_process  = os.path.join('process', filename) 
+            file.save(save_location)
+
+            if filename.lower().endswith(('.pdf')):
+                pdf2img(save_location,filename.split('.')[0])
+                filename=filename.split('.')[0]+'.jpg'
                 input_process  = os.path.join('process', filename) 
-                file.save(save_location)
-
-                if filename.lower().endswith(('.pdf')):
-                    pdf2img(save_location,filename.split('.')[0])
-                    filename=filename.split('.')[0]+'.jpg'
-                    input_process  = os.path.join('process', filename) 
-                elif filename.lower().endswith(('.png')):
-                    png2jpg(save_location,filename.split('.')[0])
-                    filename=filename.split('.')[0]+'.jpg'
-                    input_process  = os.path.join('process', filename) 
-                else:
-                    with Image.open(save_location) as image:
-                        image.save(input_process , 'JPEG')
-                        image.close()
+            elif filename.lower().endswith(('.png')):
+                png2jpg(save_location,filename.split('.')[0])
+                filename=filename.split('.')[0]+'.jpg'
+                input_process  = os.path.join('process', filename) 
+            else:
+                with Image.open(save_location) as image:
+                    image.save(input_process , 'JPEG')
+                    image.close()
      
-                with Image.open(input_process) as im:
-                    information_extract(request.form['format'],im)
+            with Image.open(input_process) as im:
+                information_extract(request.form['format'],im)
 
-                return redirect(url_for('download'))
+            return redirect(url_for('download'))
 
     return render_template('index.html')
    
