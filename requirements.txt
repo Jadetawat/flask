@@ -50,3 +50,4 @@ tzdata==2024.1
 urllib3==2.0.7
 Werkzeug==2.2.3
 zipp==3.15.0
+backports.zoneinfo;python_version<"3.9"
