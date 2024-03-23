@@ -216,7 +216,6 @@ def information_extract(format,im):
   elif format=='002':
     info_path=removed_table_path
     tableDetect(im,30)
-    info=["",[""]]
     date = [width*1627/2481,height*487/3508,width*1893/2481,height*535/3508]
     date_crop=crop2OCR(info_path,date)
 
@@ -234,10 +233,10 @@ def information_extract(format,im):
     except:
       print("columns must be unique")
     df['Due_Date']=date_crop[0]
-    df['invoice_Total']=behind('total',info[1])
-    df['invoice_Discount']=behind('discount',info[1])
-    df['Total_after_discount']=behind('total after discount',info[1])
-    df['Grand_Total']=behind('grand total',info[1])
+    df['invoice_Total']=behind('total',total_crop)
+    df['invoice_Discount']=behind('discount',total_crop)
+    df['Total_after_discount']=behind('total after discount',total_crop)
+    df['Grand_Total']=behind('grand total',total_crop)
     df.to_csv(csv_output, index=False,encoding="utf-8")
     
     information = np.array([[date_crop[0] ,df['invoice_Total'].tolist()[0] ,df['invoice_Discount'].tolist()[0] ,df['Total_after_discount'].tolist()[0] ,df['Grand_Total'].tolist()[0]]] )
