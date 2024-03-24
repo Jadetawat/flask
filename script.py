@@ -60,7 +60,6 @@ def plot_results(pil_img, scores, labels, boxes):
     COLORS = [[0.000, 0.447, 0.741], [0.850, 0.325, 0.098], [0.929, 0.694, 0.125],
           [0.494, 0.184, 0.556], [0.466, 0.674, 0.188], [0.301, 0.745, 0.933]]
 
-    plt.figure(figsize=(16,10))
     plt.imshow(pil_img)
     ax = plt.gca()
     colors = COLORS * 100
@@ -215,7 +214,6 @@ def information_extract(format,im):
     except:
       print("table.json is not found")
     
-    im.close()
 
   elif format=='002':
     info_path=removed_table_path
@@ -252,7 +250,6 @@ def information_extract(format,im):
     except:
       print("table.json is not found")
 
-    im.close()
 
   elif format=='003':
 
@@ -292,7 +289,6 @@ def information_extract(format,im):
     except:
       print("table.json is not found")
     return df
-    im.close()
 
   else:
     try:
