@@ -9,12 +9,16 @@ import fitz  # PyMuPDF
 import matplotlib.pyplot as plt
 import torch
 
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
 reader = easyocr.Reader(['th','en'])
-table_model = AutoModelForObjectDetection.from_pretrained("microsoft/table-transformer-detection")
+table_model = AutoModelForObjectDetection.from_pretrained("microsoft/table-transformer-detection",revision="no_timm")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 table_model.to(device)
 feature_extractor = DetrFeatureExtractor()
-Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-transformer-structure-recognition")
+#Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-transformer-structure-recognition")
+Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-structure-recognition-v1.1-all")
 
 cropped_table_path="./process/cropped_table.jpg"
 removed_table_path="./process/removed_table.jpg"
