@@ -61,7 +61,7 @@ def upload():
      
             with Image.open(input_process) as im:
                 information_extract(request.form['format'],im)
-
+                im.close()
             return redirect(url_for('download'))
 
     return render_template('index.html')
