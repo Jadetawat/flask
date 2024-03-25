@@ -8,7 +8,6 @@ import easyocr
 import fitz  # PyMuPDF
 import matplotlib.pyplot as plt
 import torch
-import secrets
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -18,19 +17,6 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 table_model.to(device)
 feature_extractor = DetrImageProcessor()
 Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-structure-recognition-v1.1-all")
-
-def generate_token():
-    return secrets.token_hex(8)
-
-process_dir = generate_token()
-output_dir = generate_token()
-cropped_table_path=f"./process/{process_dir}/cropped_table.jpg"
-removed_table_path=f"./process/{process_dir}/removed_table.jpg"
-csv_output=f"./output/{output_dir}/output.csv"
-json_output=f"./output/{output_dir}/output.json"
-Table_Path=f"./process/{process_dir}/table.json"
-#save_fig="./process/savefig.jpg"
-
 
 
 def pdf2img(pdf_path, output, dpi=300):
@@ -52,14 +38,14 @@ def png2jpg(png_file, new_name):
     except Exception as e:
         print(f"Conversion failed: {e}")
 
-def blank(im,bbox):
-  blank = ImageDraw.Draw(im)
+def blank(im,bbox,removed_table_path):
+  fill_white = ImageDraw.Draw(im)
   start_point = (bbox[0],bbox[1])
   end_point = (bbox[2],bbox[3])
-  blank.rectangle((start_point,end_point), fill ="white")
+  fill_white.rectangle((start_point,end_point), fill ="white")
   im.save(removed_table_path)
 
-def tableDetect(image,padding=0):
+def tableDetect(image,cropped_table_path,removed_table_path,padding=0):
     encoding = feature_extractor(image, return_tensors="pt")
     encoding.keys()
     width, height = image.size
@@ -68,7 +54,7 @@ def tableDetect(image,padding=0):
     results = feature_extractor.post_process_object_detection(outputs, threshold=0.8, target_sizes=[(height, width)])[0]
     bbox=[results['boxes'][0][0].tolist()-padding, results['boxes'][0][1].tolist()-padding, results['boxes'][0][2].tolist()+padding, results['boxes'][0][3].tolist()+padding]
     cropped_table=image.crop(bbox)
-    blank(image,bbox)
+    blank(image,bbox,removed_table_path)
     cropped_table.save(cropped_table_path)
 
 def compute_boxes(cropped_table,threshold):
@@ -143,8 +129,8 @@ def crop2OCR(img_path,pos):
     return text
 
 
-def json_table():
-  with open(Table_Path, encoding='utf-8') as json_file:
+def json_table(json_output,Json_Table_Path):
+  with open(Json_Table_Path, encoding='utf-8') as json_file:
     add_value = json.load(json_file)
     json_file.close()
   with open( json_output, encoding='utf-8') as json_file:
@@ -155,29 +141,29 @@ def json_table():
     json.dump(json_decoded, json_file,ensure_ascii=False)
     json_file.close()
 
-def information_extract(format,im):
+def information_extract(format,im,cropped_table_path,removed_table_path,csv_output,json_output,Json_Table_Path):
   width, height = im.size
   if format=='001':
 
     table=[120*width/2616, 1127*height/3385, 2552*width/2616, 1772*height/3385]
     cropped_table=im.crop(table)
     cropped_table.save(cropped_table_path)
-    info_path=removed_table_path
-    blank(im,table)
+    
+    blank(im,table,removed_table_path)
 
     date = [width*333/2616,height*922/3385,width*570/2616,height*960/3385]
-    date_crop=crop2OCR(info_path,date)
+    date_crop=crop2OCR(removed_table_path,date)
 
 
     total=[width*2300/2616,height*1800/3385,width*2545/2616,height*2170/3385]
-    total_crop=crop2OCR(info_path,total)
+    total_crop=crop2OCR(removed_table_path,total)
 
     df=tableRecognize(cropped_table_path,0.8)
     df=df.dropna(how='all')
      
     try:
       df.columns = ['ลำดับ', 'รหัสสินค้า', 'รายการสินค้า', 'รายละเอียด/สี', 'XS', 'S', 'M', 'L', 'XL', 'รวมจำนวน', 'ราคา', 'รวมราคา']
-      df.to_json(Table_Path,force_ascii=False, orient ='records')
+      df.to_json(Json_Table_Path,force_ascii=False, orient ='records')
     except:
       print("columns must be unique")
     
@@ -200,13 +186,13 @@ def information_extract(format,im):
       print("table.json is not found")
     
   elif format=='002':
-    info_path=removed_table_path
-    tableDetect(im,30)
+    
+    tableDetect(im,cropped_table_path,removed_table_path,30)
     date = [width*1627/2481,height*487/3508,width*1893/2481,height*535/3508]
-    date_crop=crop2OCR(info_path,date)
+    date_crop=crop2OCR(removed_table_path,date)
 
     total=[width*1670/2481,height*1000/3508,width*2370/2481,height*2880/3508]
-    total_crop=crop2OCR(info_path,total)
+    total_crop=crop2OCR(removed_table_path,total)
 
     df=tableRecognize(cropped_table_path,0.8)
     df = df.dropna(how="all")
@@ -215,7 +201,7 @@ def information_extract(format,im):
      
     try:
       df.columns = ['#', 'Description', 'Quantity', 'Unit Price', 'Total']
-      df.to_json(Table_Path,force_ascii=False, orient ='records')
+      df.to_json(Json_Table_Path,force_ascii=False, orient ='records')
     except:
       print("columns must be unique")
     df['Due_Date']=date_crop[0]
@@ -247,17 +233,17 @@ def information_extract(format,im):
      
     try:
       df.columns = ['No.', 'รหัสสินค้า/รายละเอียด', 'จำนวน', 'หน่วยละ', 'จำนวนเงิน']
-      df.to_json(Table_Path,force_ascii=False, orient ='records')
+      df.to_json(Json_Table_Path,force_ascii=False, orient ='records')
     except:
       print("columns must be unique")
-    info_path=removed_table_path
-    blank(im,table)
+    
+    blank(im,table,removed_table_path)
 
     total=[width*4477/5296,height*6065/7488,width*5105/5296,height*6205/7488]
-    total_crop=crop2OCR(info_path,total)
+    total_crop=crop2OCR(removed_table_path,total)
 
     date = [width*4613/5296,height*1407/7488,width*5129/5296,height*1557/7488]
-    date_crop=crop2OCR(info_path,date)
+    date_crop=crop2OCR(removed_table_path,date)
 
     df['date']=date_crop[0]
     df['total']=total_crop[0]
@@ -275,7 +261,7 @@ def information_extract(format,im):
 
   else:
     try:
-      tableDetect(im,30)
+      tableDetect(im,cropped_table_path,removed_table_path,30)
       df=tableRecognize(cropped_table_path,0.8)
       df.dropna(how="all")
       df.columns = df.iloc[0]
