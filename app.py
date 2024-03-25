@@ -12,7 +12,7 @@ app = Flask(__name__)
 key = secrets.token_hex(16)
 app.secret_key = key
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = 600
+app.config['PERMANENT_SESSION_LIFETIME'] = 180
 
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg','jpeg'])
 
@@ -95,6 +95,7 @@ def download():
 
 
 def teardown_request(exception=None):
+    print("teardown_request active")
     user_dir = session.pop('user_dir', None)
     process_dir = session.pop('process_dir', None)
     output_dir = session.pop('output_dir', None)
