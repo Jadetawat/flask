@@ -102,24 +102,24 @@ def download_file(filename):
     else:
         return render_template('index.html')
     
-@app.errorhandler(Exception)
-def handle_exception(e):
-    # Perform cleanup operations here
-    user_dir = session.pop('user_dir', None)
-    process_dir = session.pop('process_dir', None)
-    output_dir = session.pop('output_dir', None)
-    if user_dir:
-        shutil.rmtree(os.path.join('input', user_dir))
+@app.before_request
+def check_session():
+    if session.modified:
+        # Perform cleanup operations here
+        user_dir = session.pop('user_dir', None)
+        process_dir = session.pop('process_dir', None)
+        output_dir = session.pop('output_dir', None)
+        if user_dir:
+            shutil.rmtree(os.path.join('input', user_dir))
+        if process_dir:
+            shutil.rmtree(os.path.join('process', process_dir))
+        if output_dir:
+            shutil.rmtree(os.path.join('output', output_dir))
 
-    if process_dir:
-        shutil.rmtree(os.path.join('process', process_dir))
-
-    if output_dir:
-        shutil.rmtree(os.path.join('output', output_dir))
-
-    # Log the exception or perform other error handling tasks
-    # You can return a custom error page or response here if needed
-    return 'An error occurred', 500
+@app.after_request
+def save_session(response):
+    session.modified = True
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0", port=5000)
