@@ -12,7 +12,7 @@ app = Flask(__name__)
 key = secrets.token_hex(16)
 app.secret_key = key
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = 60
+app.config['PERMANENT_SESSION_LIFETIME'] = 180
 
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg','jpeg'])
 
