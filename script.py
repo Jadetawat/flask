@@ -9,7 +9,6 @@ import fitz  # PyMuPDF
 import matplotlib.pyplot as plt
 import torch
 import secrets
-
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -20,15 +19,19 @@ table_model.to(device)
 feature_extractor = DetrImageProcessor()
 Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-structure-recognition-v1.1-all")
 
-process_dir = secrets.token_hex(8)
-output_dir = secrets.token_hex(8)
+def generate_token():
+    return secrets.token_hex(8)
 
+process_dir = generate_token()
+output_dir = generate_token()
 cropped_table_path=f"./process/{process_dir}/cropped_table.jpg"
 removed_table_path=f"./process/{process_dir}/removed_table.jpg"
 csv_output=f"./output/{output_dir}/output.csv"
 json_output=f"./output/{output_dir}/output.json"
 Table_Path=f"./process/{process_dir}/table.json"
 #save_fig="./process/savefig.jpg"
+
+
 
 def pdf2img(pdf_path, output, dpi=300):
 
