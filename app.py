@@ -12,7 +12,7 @@ app = Flask(__name__)
 key = secrets.token_hex(16)
 app.secret_key = key
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = 180
+app.config['PERMANENT_SESSION_LIFETIME'] = 60
 
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg','jpeg'])
 
@@ -102,24 +102,19 @@ def download_file(filename):
     else:
         return render_template('index.html')
     
-@app.before_request
-def check_session():
-    if session.modified:
-        # Perform cleanup operations here
-        user_dir = session.pop('user_dir', None)
-        process_dir = session.pop('process_dir', None)
-        output_dir = session.pop('output_dir', None)
-        if user_dir:
-            shutil.rmtree(os.path.join('input', user_dir))
-        if process_dir:
-            shutil.rmtree(os.path.join('process', process_dir))
-        if output_dir:
-            shutil.rmtree(os.path.join('output', output_dir))
+@app.route('/delete_user_dir')
+def delete_user_dir():
+    user_dir = session.pop('user_dir', None)
+    process_dir = session.pop('process_dir', None)
+    output_dir = session.pop('output_dir', None)
+    if user_dir:
+        shutil.rmtree(os.path.join('input', user_dir))
+    if process_dir:
+        shutil.rmtree(os.path.join('process', process_dir))
+    if output_dir:
+        shutil.rmtree(os.path.join('output', output_dir))
+    return redirect(url_for('upload'))
 
-@app.after_request
-def save_session(response):
-    session.modified = True
-    return response
 
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0", port=5000)
