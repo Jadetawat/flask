@@ -1,7 +1,7 @@
-from flask import Flask, render_template, url_for, request, redirect,send_from_directory,session
+from flask import Flask, render_template, url_for, request,session,redirect
 from werkzeug.utils import secure_filename
 import os
-from script import pdf2img, png2jpg, information_extract,process_dir,output_dir,generate_token
+from script import pdf2img, png2jpg, information_extract
 from PIL import Image
 import pandas as pd
 import shutil
@@ -20,8 +20,11 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def generate_token():
+    return secrets.token_hex(8)
 
 # Modify the upload function to create a private directory for each user
+
 @app.route('/', methods=['GET', 'POST'])
 def upload():
 
@@ -30,14 +33,20 @@ def upload():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             # Generate unique directory names for each user session
-            user_dir = generate_token()
+            user_dir=generate_token()
+            process_dir=generate_token()
+            output_dir=generate_token()
             os.makedirs(os.path.join('input', user_dir))
             os.makedirs(os.path.join('process', process_dir))
             os.makedirs(os.path.join('output', output_dir))
-
             save_location = os.path.join('input', user_dir, filename)
             input_process = os.path.join('process', process_dir, filename)
             file.save(save_location)
+            cropped_table_path=f"./process/{process_dir}/cropped_table.jpg"
+            removed_table_path=f"./process/{process_dir}/removed_table.jpg"
+            csv_output=f"./output/{output_dir}/output.csv"
+            json_output=f"./output/{output_dir}/output.json"
+            Json_Table_Path=f"./process/{process_dir}/table.json"
 
             if filename.lower().endswith(('.pdf')):
                 pdf2img(save_location, filename.split('.')[0])
@@ -52,7 +61,7 @@ def upload():
                     image.save(input_process, 'JPEG')
 
             with Image.open(input_process) as im:
-                information_extract(request.form['format'], im)
+                information_extract(request.form['format'],im,cropped_table_path,removed_table_path,csv_output,json_output,Json_Table_Path)
                 
  
             
