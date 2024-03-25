@@ -21,6 +21,7 @@ def allowed_file(filename):
 def generate_token():
     return secrets.token_hex(8)
 
+
 user_dir = generate_token()
 # Modify the upload function to create a private directory for each user
 @app.route('/', methods=['GET', 'POST'])
@@ -86,20 +87,18 @@ def download():
     return render_template('download.html', files=files, tables=[df.to_html(index=False, classes='data', header="true")])
 
 
-# Add a route to delete the user_dir, process_dir, and output_dir when returning to index.html or closing the session
-@app.route('/delete_user_dir')
-def delete_user_dir():
+def teardown_request(exception=None):
     user_dir = session.pop('user_dir', None)
     process_dir = session.pop('process_dir', None)
     output_dir = session.pop('output_dir', None)
     if user_dir:
         shutil.rmtree(os.path.join('input', user_dir))
+
     if process_dir:
         shutil.rmtree(os.path.join('process', process_dir))
+
     if output_dir:
         shutil.rmtree(os.path.join('output', output_dir))
-    return redirect(url_for('upload'))
-
 
 if __name__ == '__main__':
     app.run(debug=True, port="5000")
