@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request,session,redirect
+from flask import Flask, render_template, url_for, request,session,redirect,send_from_directory
 from werkzeug.utils import secure_filename
 import os
 from script import pdf2img, png2jpg, information_extract
@@ -6,7 +6,7 @@ from PIL import Image
 import pandas as pd
 import shutil
 import secrets
-
+import time
 
 app = Flask(__name__)
 key = secrets.token_hex(16)
@@ -69,6 +69,8 @@ def upload():
             session['user_dir'] = user_dir
             session['process_dir'] = process_dir
             session['output_dir'] = output_dir
+            session['last_activity'] = time.time()  # Store the timestamp of last activity
+
 
             return redirect(url_for('download'))
 
@@ -81,6 +83,18 @@ def download():
     user_dir = session.get('user_dir')
     process_dir = session.get('process_dir')
     output_dir = session.get('output_dir')
+    last_activity = session.get('last_activity', 0)
+      # Check if the session has expired
+    if time.time() - last_activity > app.config['PERMANENT_SESSION_LIFETIME']:
+        # Clean up session data
+        session.pop('user_dir', None)
+        session.pop('process_dir', None)
+        session.pop('output_dir', None)
+        session.pop('last_activity', None)
+        # Call teardown_request function to clean up directories
+        teardown_request()
+        return redirect(url_for('upload'))  # Redirect to upload if session expired
+
     if not (user_dir and process_dir and output_dir):
         return redirect(url_for('upload'))  # Redirect to upload if user_dir, process_dir, or output_dir is not set
 
@@ -93,20 +107,32 @@ def download():
         print(e)
     return render_template('download.html', files=files, tables=[df.to_html(index=False, classes='data', header="true")])
 
+@app.route('/download/<filename>')
+def download_file(filename):
+    user_output_dir = session.get('output_dir')
+    if user_output_dir:
+        return send_from_directory(directory=os.path.join('output', user_output_dir), filename=filename, as_attachment=True)
+    else:
+        return "No file to download."
 
 def teardown_request(exception=None):
     print("teardown_request active")
     user_dir = session.pop('user_dir', None)
     process_dir = session.pop('process_dir', None)
     output_dir = session.pop('output_dir', None)
-    if user_dir:
+    if user_dir==None:
         shutil.rmtree(os.path.join('input', user_dir))
 
-    if process_dir:
+    if process_dir==None:
         shutil.rmtree(os.path.join('process', process_dir))
 
-    if output_dir:
+    if output_dir==None:
         shutil.rmtree(os.path.join('output', output_dir))
+
+@app.after_request
+def after_request(response):
+    session['last_activity'] = time.time()  # Update the timestamp of last activity
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0", port=5000)
