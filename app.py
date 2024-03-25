@@ -1,295 +1,102 @@
-from PIL import Image,ImageDraw
-from transformers import TableTransformerForObjectDetection,AutoModelForObjectDetection,DetrImageProcessor
-import torch
-import numpy as np
+from flask import Flask, render_template, url_for, request, redirect,send_from_directory,session
+from werkzeug.utils import secure_filename
+import os
+from script import pdf2img, png2jpg, information_extract,process_dir,output_dir,generate_token
+from PIL import Image
 import pandas as pd
-import json
-import easyocr
-import fitz  # PyMuPDF
-import matplotlib.pyplot as plt
-import torch
+import shutil
 import secrets
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
-
-reader = easyocr.Reader(['th','en'])
-table_model = AutoModelForObjectDetection.from_pretrained("microsoft/table-transformer-detection",revision="no_timm")
-device = "cuda" if torch.cuda.is_available() else "cpu"
-table_model.to(device)
-feature_extractor = DetrImageProcessor()
-Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-structure-recognition-v1.1-all")
-
-def generate_token():
-    return secrets.token_hex(8)
-
-process_dir = generate_token()
-output_dir = generate_token()
-cropped_table_path=f"./process/{process_dir}/cropped_table.jpg"
-removed_table_path=f"./process/{process_dir}/removed_table.jpg"
-csv_output=f"./output/{output_dir}/output.csv"
-json_output=f"./output/{output_dir}/output.json"
-Table_Path=f"./process/{process_dir}/table.json"
-#save_fig="./process/savefig.jpg"
 
 
+app = Flask(__name__)
+key = secrets.token_hex(16)
+app.secret_key = key
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = 600
 
-def pdf2img(pdf_path, output, dpi=300):
+ALLOWED_EXTENSIONS = set(['pdf','png','jpg','jpeg'])
 
-    pdf_document = fitz.open(pdf_path)
-    page = pdf_document.load_page(0)
-    pix = page.get_pixmap(matrix=fitz.Matrix(dpi/72, dpi/72))
-    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-    img_path = f"process/{output}.jpg"
-    img.save(img_path, dpi=(dpi, dpi))
-    pdf_document.close()
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def png2jpg(png_file, new_name):
+
+# Modify the upload function to create a private directory for each user
+@app.route('/', methods=['GET', 'POST'])
+def upload():
+
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            # Generate unique directory names for each user session
+            user_dir = generate_token()
+            os.makedirs(os.path.join('input', user_dir))
+            os.makedirs(os.path.join('process', process_dir))
+            os.makedirs(os.path.join('output', output_dir))
+
+            save_location = os.path.join('input', user_dir, filename)
+            input_process = os.path.join('process', process_dir, filename)
+            file.save(save_location)
+
+            if filename.lower().endswith(('.pdf')):
+                pdf2img(save_location, filename.split('.')[0])
+                filename = filename.split('.')[0] + '.jpg'
+                input_process = os.path.join('process', process_dir, filename)
+            elif filename.lower().endswith(('.png')):
+                png2jpg(save_location, filename.split('.')[0])
+                filename = filename.split('.')[0] + '.jpg'
+                input_process = os.path.join('process', process_dir, filename)
+            else:
+                with Image.open(save_location) as image:
+                    image.save(input_process, 'JPEG')
+
+            with Image.open(input_process) as im:
+                information_extract(request.form['format'], im)
+                
+ 
+            
+            # Store the user_dir, process_dir, and output_dir in the session
+            session['user_dir'] = user_dir
+            session['process_dir'] = process_dir
+            session['output_dir'] = output_dir
+
+            return redirect(url_for('download'))
+
+    return render_template('index.html')
+
+
+# Modify the download function to display only files from the user's directory
+@app.route('/download')
+def download():
+    user_dir = session.get('user_dir')
+    process_dir = session.get('process_dir')
+    output_dir = session.get('output_dir')
+    if not (user_dir and process_dir and output_dir):
+        return redirect(url_for('upload'))  # Redirect to upload if user_dir, process_dir, or output_dir is not set
+
+    user_output_dir = os.path.join('output', output_dir)
+    files = os.listdir(user_output_dir)
+    df = pd.DataFrame()
     try:
-        with Image.open(png_file) as img:
-            img.convert('RGB').save(f"process/{new_name}.jpg", 'JPEG')
-            img.close()
-        print(f"Conversion successful: {new_name}")
+        df = pd.read_csv(os.path.join(user_output_dir, "output.csv"), encoding="utf-8")
     except Exception as e:
-        print(f"Conversion failed: {e}")
-
-def blank(im,bbox):
-  blank = ImageDraw.Draw(im)
-  start_point = (bbox[0],bbox[1])
-  end_point = (bbox[2],bbox[3])
-  blank.rectangle((start_point,end_point), fill ="white")
-  im.save(removed_table_path)
-
-def tableDetect(image,padding=0):
-    encoding = feature_extractor(image, return_tensors="pt")
-    encoding.keys()
-    width, height = image.size
-    with torch.no_grad():
-        outputs = table_model(**encoding)
-    results = feature_extractor.post_process_object_detection(outputs, threshold=0.8, target_sizes=[(height, width)])[0]
-    bbox=[results['boxes'][0][0].tolist()-padding, results['boxes'][0][1].tolist()-padding, results['boxes'][0][2].tolist()+padding, results['boxes'][0][3].tolist()+padding]
-    cropped_table=image.crop(bbox)
-    blank(image,bbox)
-    cropped_table.save(cropped_table_path)
-
-def compute_boxes(cropped_table,threshold):
-    encoding = feature_extractor(cropped_table, return_tensors="pt")
-    encoding.keys()
-    with torch.no_grad():
-        outputs = Tstructure_model(**encoding)
-    target_sizes = [cropped_table.size[::-1]]
-    results = feature_extractor.post_process_object_detection(outputs, threshold, target_sizes=target_sizes)[0]
-    boxes = results['boxes'].tolist()
-    labels = results['labels'].tolist()
-
-    return boxes,labels
-
-def tableRecognize(img_path,threshold=0.8):
-    cropped_table=Image.open(img_path)
-    boxes,labels = compute_boxes(cropped_table,threshold)
-    cell_locations = []
-    for box_row, label_row in zip(boxes, labels):
-        if label_row == 2:
-            for box_col, label_col in zip(boxes, labels):
-                if label_col == 1:
-                    cell_box = (box_col[0], box_row[1], box_col[2], box_row[3])
-                    cell_locations.append(cell_box)
-    cell_locations.sort(key=lambda x: (x[1], x[0]))
-
-    empty_row=0
-    num_columns = 0
-    box_old = cell_locations[0]
-    for box in cell_locations[1:]:
-        x1, y1, x2, y2 = box
-        x1_old, y1_old, x2_old, y2_old = box_old
-        num_columns += 1
-        if y1 > y1_old:
-            break
-        box_old = box
-        
-    df = pd.DataFrame(columns=range(1,num_columns+1)).add_prefix("column")
-    row = []
-    for box in cell_locations[:]:
-        x1, y1, x2, y2 = box
-        cell_image = np.array(cropped_table.crop((x1, y1, x2, y2)))
-        cell_text = reader.readtext(np.array(cell_image),paragraph=False, detail=0)
-        if len(cell_text) == 0:
-          cell_text=np.nan
-        else:
-          cell_text = ''.join([str(elem) for elem in cell_text])
-        row.append(cell_text)
-        if len(row) == num_columns:
-            if all(pd.isnull(row)):
-              empty_row+=1
-              if empty_row==2:
-                return df
-            else: empty_row=0
-            df.loc[len(df)] = row
-            row = []
-    cropped_table.close()
-    return df
-
-def behind(lower,text):
-  for i in range(0,len(text),2):
-    if text[i].lower() == lower:
-      data=text[i+1].strip(" ")
-      return data
-
-def crop2OCR(img_path,pos):
-    img = Image.open(img_path).convert("RGB")
-    cropped_img=img.crop(pos)
-    arr = np.array(cropped_img)
-    text = reader.readtext(np.array(arr),paragraph=False, detail=0)
-    img.close()
-    return text
+        print(e)
+    return render_template('download.html', files=files, tables=[df.to_html(index=False, classes='data', header="true")])
 
 
-def json_table():
-  with open(Table_Path, encoding='utf-8') as json_file:
-    add_value = json.load(json_file)
-    json_file.close()
-  with open( json_output, encoding='utf-8') as json_file:
-    json_decoded = json.load(json_file)
-    json_decoded[0]['table'] = add_value
-    json_file.close()
-  with open(json_output, 'w', encoding='utf-8') as json_file:
-    json.dump(json_decoded, json_file,ensure_ascii=False)
-    json_file.close()
+def teardown_request(exception=None):
+    user_dir = session.pop('user_dir', None)
+    process_dir = session.pop('process_dir', None)
+    output_dir = session.pop('output_dir', None)
+    if user_dir:
+        shutil.rmtree(os.path.join('input', user_dir))
 
-def information_extract(format,im):
-  width, height = im.size
-  if format=='001':
+    if process_dir:
+        shutil.rmtree(os.path.join('process', process_dir))
 
-    table=[120*width/2616, 1127*height/3385, 2552*width/2616, 1772*height/3385]
-    cropped_table=im.crop(table)
-    cropped_table.save(cropped_table_path)
-    info_path=removed_table_path
-    blank(im,table)
+    if output_dir:
+        shutil.rmtree(os.path.join('output', output_dir))
 
-    date = [width*333/2616,height*922/3385,width*570/2616,height*960/3385]
-    date_crop=crop2OCR(info_path,date)
-
-
-    total=[width*2300/2616,height*1800/3385,width*2545/2616,height*2170/3385]
-    total_crop=crop2OCR(info_path,total)
-
-    df=tableRecognize(cropped_table_path,0.8)
-    df=df.dropna(how='all')
-     
-    try:
-      df.columns = ['ลำดับ', 'รหัสสินค้า', 'รายการสินค้า', 'รายละเอียด/สี', 'XS', 'S', 'M', 'L', 'XL', 'รวมจำนวน', 'ราคา', 'รวมราคา']
-      df.to_json(Table_Path,force_ascii=False, orient ='records')
-    except:
-      print("columns must be unique")
-    
-    df['Due_Date']=date_crop[0]
-    df['ราคาสินค้าก่อนหักภาษี']=total_crop[0]
-    df['ภาษี ณ ที่จ่าย3%']=total_crop[1]
-    df['ค่ามัดจำงาน']=total_crop[2]
-    df['ค่ามัดจำงาน']=total_crop[3]
-    df['รวมสุทธิ']=total_crop[4]
-    df['ค่ามัดจำงานผลิต70%']=total_crop[5]
-    df['คงเหลือ']=total_crop[6]
-    df.to_csv(csv_output, index=False,encoding="utf-8")
-    information = np.array([[date_crop[0] ,total_crop[0] ,total_crop[1] ,total_crop[2] ,total_crop[3] ,total_crop[4] ,total_crop[5] ,total_crop[6] ]])
-    df1 = pd.DataFrame(information, columns = ['วันนัดส่ง','ราคา สินค้าก่อนหักภาษี ณ ที่จ่าย 3%', 'ภาษี ณ ฺที่จ่าย 3%', 'รวมราคาคงเหลือ', 'ค่ามัดจำงาน', 'รวมสุทธิ', 'ค่ามัดจำงานผลิต 70 %', 'คงเหลือ'])
-    df1['table']=np.nan
-    df1.to_json( json_output,force_ascii=False, orient ='records')
-    try:
-      json_table()
-    except:
-      print("table.json is not found")
-    
-  elif format=='002':
-    info_path=removed_table_path
-    tableDetect(im,30)
-    date = [width*1627/2481,height*487/3508,width*1893/2481,height*535/3508]
-    date_crop=crop2OCR(info_path,date)
-
-    total=[width*1670/2481,height*1000/3508,width*2370/2481,height*2880/3508]
-    total_crop=crop2OCR(info_path,total)
-
-    df=tableRecognize(cropped_table_path,0.8)
-    df = df.dropna(how="all")
-    df.columns = df.iloc[0]
-    df = df[1:]
-     
-    try:
-      df.columns = ['#', 'Description', 'Quantity', 'Unit Price', 'Total']
-      df.to_json(Table_Path,force_ascii=False, orient ='records')
-    except:
-      print("columns must be unique")
-    df['Due_Date']=date_crop[0]
-    df['invoice_Total']=behind('total',total_crop)
-    df['invoice_Discount']=behind('discount',total_crop)
-    df['Total_after_discount']=behind('total after discount',total_crop)
-    df['Grand_Total']=behind('grand total',total_crop)
-    df.to_csv(csv_output, index=False,encoding="utf-8")
-    
-    information = np.array([[date_crop[0] ,df['invoice_Total'].tolist()[0] ,df['invoice_Discount'].tolist()[0] ,df['Total_after_discount'].tolist()[0] ,df['Grand_Total'].tolist()[0]]] )
-    df1 = pd.DataFrame(information, columns = ['Due_Date','invoice_Total', 'invoice_Discount', 'Total_after_discount', 'Grand_Total'])
-    df1['table']=np.nan
-    df1.to_json( json_output,force_ascii=False, orient ='records')
-    try:
-      json_table()
-    except:
-      print("table.json is not found")
-
-  elif format=='003':
-
-    table=[width*101/5296,height*2397/7488,width*5161/5296,height*5053/7488]
-    cropped_table=im.crop(table)
-    cropped_table.save(cropped_table_path)
-
-    df=tableRecognize(cropped_table_path,0.8)
-    df = df.dropna(how='all')
-    df.columns = df.iloc[0]
-    df = df[1:]
-     
-    try:
-      df.columns = ['No.', 'รหัสสินค้า/รายละเอียด', 'จำนวน', 'หน่วยละ', 'จำนวนเงิน']
-      df.to_json(Table_Path,force_ascii=False, orient ='records')
-    except:
-      print("columns must be unique")
-    info_path=removed_table_path
-    blank(im,table)
-
-    total=[width*4477/5296,height*6065/7488,width*5105/5296,height*6205/7488]
-    total_crop=crop2OCR(info_path,total)
-
-    date = [width*4613/5296,height*1407/7488,width*5129/5296,height*1557/7488]
-    date_crop=crop2OCR(info_path,date)
-
-    df['date']=date_crop[0]
-    df['total']=total_crop[0]
-
-    df.to_csv(csv_output, index=False,encoding="utf-8")
-    information = np.array([[date_crop[0] ,total_crop[0]]])
-    df1 = pd.DataFrame(information, columns = ['date','total'])
-    df1['table']=np.nan
-    df1.to_json( json_output,force_ascii=False, orient ='records')
-    try:
-      json_table()
-    except:
-      print("table.json is not found")
-    return df
-
-  else:
-    try:
-      tableDetect(im,30)
-      df=tableRecognize(cropped_table_path,0.8)
-      df.dropna(how="all")
-      df.columns = df.iloc[0]
-      df = df[1:]       
-      df.to_csv(csv_output, index=False,encoding="utf-8")    
-    except:
-      print("no table detected")
-
-    try:
-      df.to_json(json_output,force_ascii=False, orient ='records')
-    except:
-      print("no table detected or columns must be unique")
-
-
-  
-
-
+if __name__ == '__main__':
+    app.run(debug=True,host="0.0.0.0", port=5000)
