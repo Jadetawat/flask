@@ -12,7 +12,7 @@ app = Flask(__name__)
 key = secrets.token_hex(16)
 app.secret_key = key
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = 1800
+app.config['PERMANENT_SESSION_LIFETIME'] = 600
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg','jpeg'])
 
 def allowed_file(filename):
@@ -22,7 +22,7 @@ def generate_token():
     return secrets.token_hex(8)
 
 
-user_dir = generate_token()
+
 # Modify the upload function to create a private directory for each user
 @app.route('/', methods=['GET', 'POST'])
 def upload():
@@ -32,7 +32,7 @@ def upload():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             # Generate unique directory names for each user session
-
+            user_dir = generate_token()
             os.makedirs(os.path.join('input', user_dir))
             os.makedirs(os.path.join('process', process_dir))
             os.makedirs(os.path.join('output', output_dir))
@@ -101,4 +101,4 @@ def teardown_request(exception=None):
         shutil.rmtree(os.path.join('output', output_dir))
 
 if __name__ == '__main__':
-    app.run(debug=True, port="5000")
+    app.run(debug=True,host="0.0.0.0", port=5000)
