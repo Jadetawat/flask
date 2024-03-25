@@ -1,5 +1,5 @@
 from PIL import Image,ImageDraw
-from transformers import TableTransformerForObjectDetection,AutoModelForObjectDetection,DetrFeatureExtractor
+from transformers import TableTransformerForObjectDetection,AutoModelForObjectDetection,DetrImageProcessor
 import torch
 import numpy as np
 import pandas as pd
@@ -8,6 +8,7 @@ import easyocr
 import fitz  # PyMuPDF
 import matplotlib.pyplot as plt
 import torch
+import secrets
 
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -16,24 +17,23 @@ reader = easyocr.Reader(['th','en'])
 table_model = AutoModelForObjectDetection.from_pretrained("microsoft/table-transformer-detection",revision="no_timm")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 table_model.to(device)
-feature_extractor = DetrFeatureExtractor()
-#Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-transformer-structure-recognition")
+feature_extractor = DetrImageProcessor()
 Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-structure-recognition-v1.1-all")
 
-cropped_table_path="./process/cropped_table.jpg"
-removed_table_path="./process/removed_table.jpg"
-csv_output="./output/output.csv"
-json_output="./output/output.json"
-jsonTable="./process/table.json"
-save_fig="./process/savefig.jpg"
+process_dir = secrets.token_hex(8)
+output_dir = secrets.token_hex(8)
 
-#image preprocessing
+cropped_table_path=f"./process/{process_dir}/cropped_table.jpg"
+removed_table_path=f"./process/{process_dir}/removed_table.jpg"
+csv_output=f"./output/{output_dir}/output.csv"
+json_output=f"./output/{output_dir}/output.json"
+Table_Path=f"./process/{process_dir}/table.json"
+#save_fig="./process/savefig.jpg"
 
 def pdf2img(pdf_path, output, dpi=300):
 
     pdf_document = fitz.open(pdf_path)
     page = pdf_document.load_page(0)
-        # Render the page as an image with higher resolution
     pix = page.get_pixmap(matrix=fitz.Matrix(dpi/72, dpi/72))
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
     img_path = f"process/{output}.jpg"
@@ -56,22 +56,6 @@ def blank(im,bbox):
   blank.rectangle((start_point,end_point), fill ="white")
   im.save(removed_table_path)
 
-def plot_results(pil_img, scores, labels, boxes):
-    COLORS = [[0.000, 0.447, 0.741], [0.850, 0.325, 0.098], [0.929, 0.694, 0.125],
-          [0.494, 0.184, 0.556], [0.466, 0.674, 0.188], [0.301, 0.745, 0.933]]
-
-    plt.imshow(pil_img)
-    ax = plt.gca()
-    colors = COLORS * 100
-    for score, label, (xmin, ymin, xmax, ymax),c  in zip(scores.tolist(), labels.tolist(), boxes.tolist(), colors):
-        ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
-                                   fill=False, color=c, linewidth=3))
-        text = f'{Tstructure_model.config.id2label[label]}: {score:0.2f}'
-        ax.text(xmin, ymin, text, fontsize=5,
-                bbox=dict(facecolor='yellow', alpha=0.5))
-    plt.axis('off')
-    plt.savefig(save_fig)
-
 def tableDetect(image,padding=0):
     encoding = feature_extractor(image, return_tensors="pt")
     encoding.keys()
@@ -93,7 +77,6 @@ def compute_boxes(cropped_table,threshold):
     results = feature_extractor.post_process_object_detection(outputs, threshold, target_sizes=target_sizes)[0]
     boxes = results['boxes'].tolist()
     labels = results['labels'].tolist()
-    plot_results(cropped_table, results['scores'], results['labels'], results['boxes'])
 
     return boxes,labels
 
@@ -158,7 +141,7 @@ def crop2OCR(img_path,pos):
 
 
 def json_table():
-  with open(jsonTable, encoding='utf-8') as json_file:
+  with open(Table_Path, encoding='utf-8') as json_file:
     add_value = json.load(json_file)
     json_file.close()
   with open( json_output, encoding='utf-8') as json_file:
@@ -173,8 +156,7 @@ def information_extract(format,im):
   width, height = im.size
   if format=='001':
 
-    table=[120*width/2616, (1127)*height/3385, 2552*width/2616, 1772*height/3385]
-    #table=[120*width/2616, (1127)*height/3385, 2517*width/2616, 1725*height/3385]
+    table=[120*width/2616, 1127*height/3385, 2552*width/2616, 1772*height/3385]
     cropped_table=im.crop(table)
     cropped_table.save(cropped_table_path)
     info_path=removed_table_path
@@ -192,7 +174,7 @@ def information_extract(format,im):
      
     try:
       df.columns = ['ลำดับ', 'รหัสสินค้า', 'รายการสินค้า', 'รายละเอียด/สี', 'XS', 'S', 'M', 'L', 'XL', 'รวมจำนวน', 'ราคา', 'รวมราคา']
-      df.to_json(jsonTable,force_ascii=False, orient ='records')
+      df.to_json(Table_Path,force_ascii=False, orient ='records')
     except:
       print("columns must be unique")
     
@@ -214,7 +196,6 @@ def information_extract(format,im):
     except:
       print("table.json is not found")
     
-
   elif format=='002':
     info_path=removed_table_path
     tableDetect(im,30)
@@ -231,7 +212,7 @@ def information_extract(format,im):
      
     try:
       df.columns = ['#', 'Description', 'Quantity', 'Unit Price', 'Total']
-      df.to_json(jsonTable,force_ascii=False, orient ='records')
+      df.to_json(Table_Path,force_ascii=False, orient ='records')
     except:
       print("columns must be unique")
     df['Due_Date']=date_crop[0]
@@ -250,7 +231,6 @@ def information_extract(format,im):
     except:
       print("table.json is not found")
 
-
   elif format=='003':
 
     table=[width*101/5296,height*2397/7488,width*5161/5296,height*5053/7488]
@@ -264,7 +244,7 @@ def information_extract(format,im):
      
     try:
       df.columns = ['No.', 'รหัสสินค้า/รายละเอียด', 'จำนวน', 'หน่วยละ', 'จำนวนเงิน']
-      df.to_json(jsonTable,force_ascii=False, orient ='records')
+      df.to_json(Table_Path,force_ascii=False, orient ='records')
     except:
       print("columns must be unique")
     info_path=removed_table_path
@@ -305,7 +285,7 @@ def information_extract(format,im):
       df.to_json(json_output,force_ascii=False, orient ='records')
     except:
       print("no table detected or columns must be unique")
-    im.close()
+
 
   
 
