@@ -100,7 +100,7 @@ def download_file(filename):
     if user_output_dir:
         return send_from_directory(directory=os.path.join('output', user_output_dir), filename=filename, as_attachment=True)
     else:
-        return render_template('index.html')
+        return redirect(url_for('upload'))
     
 @app.route('/delete_user_dir')
 def delete_user_dir():
