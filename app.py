@@ -69,8 +69,6 @@ def upload():
             session['user_dir'] = user_dir
             session['process_dir'] = process_dir
             session['output_dir'] = output_dir
-            session['last_activity'] = time.time()  # Store the timestamp of last activity
-
 
             return redirect(url_for('download'))
 
@@ -83,17 +81,6 @@ def download():
     user_dir = session.get('user_dir')
     process_dir = session.get('process_dir')
     output_dir = session.get('output_dir')
-    last_activity = session.get('last_activity', 0)
-      # Check if the session has expired
-    if time.time() - last_activity > app.config['PERMANENT_SESSION_LIFETIME']:
-        # Clean up session data
-        session.pop('user_dir', None)
-        session.pop('process_dir', None)
-        session.pop('output_dir', None)
-        session.pop('last_activity', None)
-        # Call teardown_request function to clean up directories
-        teardown_request()
-        return redirect(url_for('upload'))  # Redirect to upload if session expired
 
     if not (user_dir and process_dir and output_dir):
         return redirect(url_for('upload'))  # Redirect to upload if user_dir, process_dir, or output_dir is not set
@@ -113,26 +100,26 @@ def download_file(filename):
     if user_output_dir:
         return send_from_directory(directory=os.path.join('output', user_output_dir), filename=filename, as_attachment=True)
     else:
-        return "No file to download."
-
-def teardown_request(exception=None):
-    print("teardown_request active")
+        return render_template('index.html')
+    
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Perform cleanup operations here
     user_dir = session.pop('user_dir', None)
     process_dir = session.pop('process_dir', None)
     output_dir = session.pop('output_dir', None)
-    if user_dir==None:
+    if user_dir:
         shutil.rmtree(os.path.join('input', user_dir))
 
-    if process_dir==None:
+    if process_dir:
         shutil.rmtree(os.path.join('process', process_dir))
 
-    if output_dir==None:
+    if output_dir:
         shutil.rmtree(os.path.join('output', output_dir))
 
-@app.after_request
-def after_request(response):
-    session['last_activity'] = time.time()  # Update the timestamp of last activity
-    return response
+    # Log the exception or perform other error handling tasks
+    # You can return a custom error page or response here if needed
+    return 'An error occurred', 500
 
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0", port=5000)
