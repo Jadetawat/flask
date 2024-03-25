@@ -181,7 +181,7 @@ def information_extract(format,im,cropped_table_path,removed_table_path,csv_outp
     df1['table']=np.nan
     df1.to_json( json_output,force_ascii=False, orient ='records')
     try:
-      json_table()
+      json_table(json_output,Json_Table_Path)
     except:
       print("table.json is not found")
     
@@ -216,7 +216,7 @@ def information_extract(format,im,cropped_table_path,removed_table_path,csv_outp
     df1['table']=np.nan
     df1.to_json( json_output,force_ascii=False, orient ='records')
     try:
-      json_table()
+      json_table(json_output,Json_Table_Path)
     except:
       print("table.json is not found")
 
@@ -254,7 +254,7 @@ def information_extract(format,im,cropped_table_path,removed_table_path,csv_outp
     df1['table']=np.nan
     df1.to_json( json_output,force_ascii=False, orient ='records')
     try:
-      json_table()
+      json_table(json_output,Json_Table_Path)
     except:
       print("table.json is not found")
     return df
