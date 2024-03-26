@@ -13,7 +13,7 @@ key = secrets.token_hex(16)
 app.secret_key = key
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = 180
-app.config['SESSION_FILE_THRESHOLD'] = 100 
+app.config['SESSION_FILE_THRESHOLD'] = 10
 
 ALLOWED_EXTENSIONS = set(['pdf','png','jpg','jpeg'])
 
