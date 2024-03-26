@@ -149,14 +149,12 @@ def information_extract(format,im,cropped_table_path,removed_table_path,csv_outp
     cropped_table=im.crop(table)
     cropped_table.save(cropped_table_path)
     
-    blank(im,table,removed_table_path)
-
     date = [width*333/2616,height*922/3385,width*570/2616,height*960/3385]
-    date_crop=crop2OCR(removed_table_path,date)
+    date_crop=crop2OCR(cropped_table_path,date)
 
 
     total=[width*2300/2616,height*1800/3385,width*2545/2616,height*2170/3385]
-    total_crop=crop2OCR(removed_table_path,total)
+    total_crop=crop2OCR(cropped_table_path,total)
 
     df=tableRecognize(cropped_table_path,0.8)
     df=df.dropna(how='all')
@@ -237,13 +235,11 @@ def information_extract(format,im,cropped_table_path,removed_table_path,csv_outp
     except:
       print("columns must be unique")
     
-    blank(im,table,removed_table_path)
-
     total=[width*4477/5296,height*6065/7488,width*5105/5296,height*6205/7488]
-    total_crop=crop2OCR(removed_table_path,total)
+    total_crop=crop2OCR(cropped_table_path,total)
 
     date = [width*4613/5296,height*1407/7488,width*5129/5296,height*1557/7488]
-    date_crop=crop2OCR(removed_table_path,date)
+    date_crop=crop2OCR(cropped_table_path,date)
 
     df['date']=date_crop[0]
     df['total']=total_crop[0]
