@@ -23,7 +23,7 @@
             {% for filename in files %}
             <br><a href="{{ url_for('download_file', filename=filename) }}">download: {{ filename }}</a><br />
             {% endfor %}
-            <br><a href="{{ url_for('delete_user_dir') }}">Upload another file</a><br />
+
         </div>
         <div class="page-leftbar content"></div>
         <div class="page-rightbar content"></div>
