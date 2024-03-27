@@ -11,12 +11,13 @@
 </head>
 
 <body>
+
     <form method="POST" enctype="multipart/form-data">
         <div class="grid">
             <header class="page-header content">
                 <h2>Table Data Extractor</h2>
             </header>
-            <div class="page-l_main content">
+            <div class="page-main content">
 
 
                 <div class="mb-3">
@@ -24,12 +25,13 @@
                     <div class="fill"><img id="previewImg" class="img-fluid rounded"></div>
                 </div>
 
-            </div>
 
-            <div class="page-r_main content">
+
+
                 <div class="mb-3">
                     <input type="file" id="file" name="file" accept="image/jpeg,image/png,application/pdf" />
                 </div>
+
                 <div class="select_color">
                     <label>choose format:
                         <select name="format" id="format">
@@ -40,16 +42,18 @@
                         </select>
                     </label>
                 </div>
-                <div>
-                    <button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button>
-                    <p id="load"></p>
-                </div>
+                <button class="button" id="extract" onclick="loading()" name="summit_button">extract!</button>
+                <p id="load"></p>
+
             </div>
+            <div class="page-leftbar content"></div>
+            <div class="page-rightbar content"></div>
+            <div class="page-footer content">
+                <h3>*only one page per file (PNG, JPEG, PDF)</h3>
+            </div>
+        </div>
     </form>
-    <div class="page-leftbar content"></div>
-    <div class="page-rightbar content"></div>
-    <div class="page-footer content"><h3>*only one page per file (PNG, JPEG, PDF)</h3></div>
-    </div>
+
 
     <script>
         function loading() {
