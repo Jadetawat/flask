@@ -9,8 +9,8 @@
 }
 
 .button:hover {
-    background: cyan;
-    color: steelblue;
+    background: blue;
+    color: white;
 }
 
 
@@ -21,7 +21,7 @@
     min-height: 100vh;
     grid-template-areas:
         'header header header header'
-        'leftbar l_main r_main rightbar'
+        'leftbar main main rightbar'
         'footer footer footer footer';
 
 }
@@ -34,8 +34,8 @@
 
 }
 
-.page-l_main {
-    grid-area: l_main;
+.page-main {
+    grid-area: main;
     background-color: #ffffff;
 
     justify-self: center;
@@ -43,14 +43,6 @@
 
 }
 
-.page-r_main {
-    grid-area: r_main;
-    background-color: white;
-
-    justify-self: center;
-    align-self: center;
-
-}
 
 .page-rightbar {
     grid-area: rightbar;
@@ -92,8 +84,8 @@ input[type=file]::file-selector-button {
 }
 
 input[type=file]::file-selector-button:hover {
-    background: cyan;
-    color: steelblue;
+    background: blue;
+    color: white;
 }
 
 .fill img {
@@ -138,10 +130,6 @@ select option {
     font-size: 30px;
 }
 
-#extract {
-    margin-bottom: 100px;
-
-}
 
 .select_color {
     background-color: SteelBlue;
@@ -150,13 +138,13 @@ select option {
     border-radius: 10px;
     cursor: pointer;
     border: none;
-    margin-bottom: 100px;
+    margin-bottom: 50px;
 
 }
 
 .select_color:hover {
-    background-color: cyan;
-    color: steelblue;
+    background-color: blue;
+    color: white;
     padding: 10px 20px;
     border-radius: 10px;
     cursor: pointer;
