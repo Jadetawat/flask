@@ -1,5 +1,5 @@
 from PIL import Image,ImageDraw
-from transformers import TableTransformerModel,AutoModelForObjectDetection,DetrImageProcessor
+from transformers import TableTransformerForObjectDetection,AutoModelForObjectDetection,DetrImageProcessor
 import torch
 import numpy as np
 import pandas as pd
