@@ -30,25 +30,25 @@ def upload():
             csv_output=os.path.join( output_dir, "output.csv")
             json_output=os.path.join( output_dir, "output.json")
             Json_Table_Path=os.path.join( process_dir, "table.json")
-
             if filename.lower().endswith(('.pdf')):
                 filename = filename.split('.')[0] + '.jpg'
                 input_process = os.path.join(process_dir, filename)
                 pdf2img(save_location, input_process)
-
             elif filename.lower().endswith(('.png')):
                 filename = filename.split('.')[0] + '.jpg'
                 input_process = os.path.join(process_dir, filename)
                 png2jpg(save_location, input_process)
-
             else:
                 image=Image.open(save_location,'r')
                 image.save(input_process, 'JPEG')
-
             im = Image.open(input_process,'r')
-
-            information_extract(request.form['format'],im,cropped_table_path,removed_table_path,csv_output,json_output,Json_Table_Path)
-            
+            try:
+                information_extract(request.form['format']
+                                    ,im,cropped_table_path
+                                    ,removed_table_path
+                                    ,csv_output,json_output
+                                    ,Json_Table_Path)
+            except Exception as e: print(e)
             return redirect(url_for('download'))
     return render_template('index.html')
 
