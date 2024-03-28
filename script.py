@@ -1,5 +1,5 @@
 from PIL import Image,ImageDraw
-from transformers import TableTransformerForObjectDetection,AutoModelForObjectDetection,DetrImageProcessor
+from transformers import TableTransformerModel,AutoModelForObjectDetection,DetrImageProcessor
 import torch
 import numpy as np
 import pandas as pd
@@ -7,15 +7,17 @@ import json
 import easyocr
 import fitz  # PyMuPDF
 import torch
+import pickle
 import ssl
 
 ssl._create_default_https_context = ssl._create_unverified_context
 reader = easyocr.Reader(['th','en'])
-table_model = AutoModelForObjectDetection.from_pretrained("microsoft/table-transformer-detection",revision="no_timm")
+table_model = pickle.load(open("./models/tableDetection.pkl","rb"))
+Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-structure-recognition-v1.1-all")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 table_model.to(device)
 feature_extractor = DetrImageProcessor()
-Tstructure_model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-structure-recognition-v1.1-all")
+Tstructure_model.to(device)
 
 def pdf2img(pdf_path, input_process, dpi=300):
     pdf_document = fitz.open(pdf_path)
@@ -236,9 +238,7 @@ def information_extract(format,im,cropped_table_path,removed_table_path,csv_outp
   else:
     tableDetect(im,cropped_table_path,removed_table_path,30)
     df=tableRecognize(cropped_table_path,0.8)
-    df.dropna(how="all")
-    df.columns = df.iloc[0]
-    df = df[1:]       
+    df.dropna(how="all")      
     df.to_csv(csv_output, index=False,encoding="utf-8")    
     try:
       df.to_json(json_output,force_ascii=False, orient ='records')
